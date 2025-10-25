@@ -1,7 +1,7 @@
 import faiss
 import numpy as np
 
-def save_to_faiss(vectors, ids, output_path="faiss_index.index"):
+def save_to_faiss(vectors, ids, output_path="vector_db_index.index"):
     dim = len(vectors[0])
     index = faiss.IndexFlatL2(dim)
     index.add(np.array(vectors).astype("float32"))
