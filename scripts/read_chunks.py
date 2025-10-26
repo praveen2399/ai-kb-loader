@@ -1,5 +1,5 @@
 """
-Utility script to read and display chunk text from the knowledge base.
+Utility script to rea    docs = load_documents("../data/", max_file_size_mb=50, max_pages=200) and display chunk text from the knowledge base.
 
 This script demonstrates different ways to access the actual text content
 from your embedded chunks.
@@ -10,7 +10,7 @@ import sys
 import os
 
 # Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from loader.document_loader import load_documents, chunk_text
 

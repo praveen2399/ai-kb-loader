@@ -20,7 +20,7 @@ class VectorRetriever:
     A class for retrieving similar documents from a FAISS vector database.
     """
     
-    def __init__(self, index_path: str = "vector_db_index.index", metadata_path: str = "metadata.json"):
+    def __init__(self, index_path: str = "output/vector_db_index.index", metadata_path: str = "output/metadata.json"):
         """
         Initialize the vector retriever.
         

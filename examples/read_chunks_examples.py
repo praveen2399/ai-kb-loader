@@ -6,7 +6,7 @@ import sys
 import os
 
 # Add src directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from loader.document_loader import load_documents
 
@@ -18,7 +18,7 @@ def example_1_load_all_chunks():
     print("="*80)
     
     # Load documents from data directory
-    docs = load_documents("data/")
+    docs = load_documents("../data/")
     
     # Iterate through all documents and chunks
     total_chunks = 0
@@ -43,7 +43,7 @@ def example_2_find_specific_chunk():
     print("="*80)
     
     # Load documents
-    docs = load_documents("data/")
+    docs = load_documents("../data/")
     
     # Find chunk from specific file
     target_file = "sample_medical.txt"
@@ -71,7 +71,7 @@ def example_3_create_chunk_dictionary():
     print("="*80)
     
     # Load documents
-    docs = load_documents("data/")
+    docs = load_documents("../data/")
     
     # Create dictionary mapping chunk ID to text
     chunk_dict = {}
@@ -109,7 +109,7 @@ def example_4_search_for_keyword():
     keyword = "diabetes"
     
     # Load documents
-    docs = load_documents("data/")
+    docs = load_documents("../data/")
     
     # Search for keyword
     matches = []
@@ -139,7 +139,7 @@ def example_5_get_text_for_retrieval():
     print("="*80)
     
     # Load documents
-    docs = load_documents("data/")
+    docs = load_documents("../data/")
     
     # Create mapping
     chunk_id_to_text = {}

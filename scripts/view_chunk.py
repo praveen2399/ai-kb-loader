@@ -7,15 +7,15 @@ import json
 import sys
 import os
 
-# Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+# Add src to path so we can import our modules
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from loader.document_loader import load_documents
 
 
 def load_all_chunks():
     """Load and return all chunks with their text"""
-    docs = load_documents("data/", max_file_size_mb=50, max_pages=1000)
+    docs = load_documents("../data/", max_file_size_mb=50, max_pages=1000)
     
     chunks = []
     for doc in docs:

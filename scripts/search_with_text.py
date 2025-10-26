@@ -8,7 +8,7 @@ import sys
 from dotenv import load_dotenv
 
 # Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from retriever.vector_retriever import VectorRetriever
 from loader.document_loader import load_documents
@@ -23,7 +23,7 @@ def get_chunk_text_map():
     This is useful for retrieving the actual text of search results.
     """
     print("Loading source documents to create chunk text map...")
-    docs = load_documents("data/", max_file_size_mb=50, max_pages=1000)
+    docs = load_documents("../data/", max_file_size_mb=50, max_pages=1000)
     
     chunk_text_map = {}
     for doc in docs:
@@ -88,7 +88,7 @@ def main():
     print("=== Search with Full Chunk Text Display ===\n")
     
     # Check if vector database exists
-    if not os.path.exists("vector_db_index.index") or not os.path.exists("metadata.json"):
+    if not os.path.exists("../output/vector_db_index.index") or not os.path.exists("../output/metadata.json"):
         print("❌ Vector database not found!")
         print("📋 Please run 'python src/main.py' first.")
         return

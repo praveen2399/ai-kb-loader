@@ -1,0 +1,406 @@
+# AI Knowledge Base Loader - Workspace Organization Guide
+
+## 📁 **New Organized Structure**
+
+```
+ai-kb-loader/
+├── 📚 docs/                          # All documentation
+│   ├── README.md                      # Main project documentation
+│   ├── EMBEDDING_BEST_PRACTICES.md   # Guide for optimal embedding
+│   ├── HOW_TO_READ_CHUNKS.md         # Complete chunk reading guide
+│   ├── CHUNK_READING_QUICK_START.md  # Quick reference for chunks
+│   └── RETRIEVAL_USAGE.md            # Retrieval system usage
+│
+├── 🔧 scripts/                       # Utility scripts
+│   ├── view_chunk.py                 # Quick chunk viewer
+│   ├── read_chunks.py                # Advanced chunk reader with search
+│   └── search_with_text.py           # Search with full text display
+│
+├── 📖 examples/                      # Example scripts and demos
+│   ├── demo_retrieval.py             # Interactive retrieval demo
+│   ├── test_retrieval.py             # Test retrieval functionality
+│   └── read_chunks_examples.py       # Code examples for developers
+│
+├── 📊 output/                        # Generated files
+│   ├── vector_db_index.index         # FAISS vector database
+│   ├── metadata.json                 # Chunk metadata
+│   └── [exported files]              # Any exported JSON files
+│
+├── 🏗️ src/                           # Core application code
+│   ├── main.py                       # Main embedding pipeline
+│   ├── embeddings/
+│   │   └── embedder.py               # OpenAI embedding functions
+│   ├── loader/
+│   │   └── document_loader.py        # Document loading and chunking
+│   ├── retriever/
+│   │   ├── vector_retriever.py       # FAISS-based retrieval
+│   │   └── utils.py                  # Retrieval utilities
+│   └── vectorstore/
+│       └── faiss_indexer.py          # FAISS index management
+│
+├── 📄 data/                          # Input documents
+│   ├── sample_medical.txt            # Medical knowledge base
+│   ├── healthcare_directory.txt      # Healthcare providers directory
+│   └── pharmacy_details.txt          # Pharmacy and medication info
+│
+├── 🧪 tests/                         # Test files
+│   └── test_loader.py                # Unit tests
+│
+├── 🐍 venv/                          # Python virtual environment
+├── requirements.txt                  # Python dependencies
+└── .env                              # Environment variables
+```
+
+---
+
+## 🚀 **Quick Usage Guide**
+
+### **Main Operations**
+
+```bash
+# 1. Build/rebuild vector database
+python src/main.py
+
+# 2. Interactive retrieval demo
+python examples/demo_retrieval.py
+
+# 3. View specific chunk
+python scripts/view_chunk.py 5
+
+# 4. Search chunks with text display
+python scripts/search_with_text.py
+```
+
+### **From Project Root Directory**
+
+All commands should be run from the main project directory:
+
+```bash
+cd /path/to/ai-kb-loader/
+```
+
+---
+
+## 📚 **Documentation Overview**
+
+| File                                | Purpose                      | Use When                   |
+| ----------------------------------- | ---------------------------- | -------------------------- |
+| `docs/README.md`                    | Main project overview        | Getting started            |
+| `docs/EMBEDDING_BEST_PRACTICES.md`  | Optimization guide           | Improving performance      |
+| `docs/HOW_TO_READ_CHUNKS.md`        | Complete chunk access guide  | Need detailed chunk access |
+| `docs/CHUNK_READING_QUICK_START.md` | Quick chunk access reference | Need quick chunk viewing   |
+| `docs/RETRIEVAL_USAGE.md`           | Retrieval system usage       | Working with search        |
+
+---
+
+## 🔧 **Scripts Overview**
+
+### **scripts/view_chunk.py**
+
+- **Purpose**: Quickly view individual chunks
+- **Usage**: `python scripts/view_chunk.py [chunk_number]`
+- **Features**: Command-line and interactive modes
+
+### **scripts/read_chunks.py**
+
+- **Purpose**: Advanced chunk management with search
+- **Usage**: `python scripts/read_chunks.py`
+- **Features**: Keyword search, export to JSON, file filtering
+
+### **scripts/search_with_text.py**
+
+- **Purpose**: Vector search with full text display
+- **Usage**: `python scripts/search_with_text.py`
+- **Features**: Semantic search + chunk text display
+
+---
+
+## 📖 **Examples Overview**
+
+### **examples/demo_retrieval.py**
+
+- **Purpose**: Interactive retrieval demonstration
+- **Usage**: `python examples/demo_retrieval.py`
+- **Features**: Live search interface, statistics display
+
+### **examples/test_retrieval.py**
+
+- **Purpose**: Test retrieval functionality
+- **Usage**: `python examples/test_retrieval.py`
+- **Features**: Automated testing of search capabilities
+
+### **examples/read_chunks_examples.py**
+
+- **Purpose**: Code examples for developers
+- **Usage**: `python examples/read_chunks_examples.py`
+- **Features**: 5 different chunk access patterns
+
+---
+
+## 📊 **Output Directory**
+
+The `output/` directory contains all generated files:
+
+### **Generated by `python src/main.py`:**
+
+- `output/vector_db_index.index` - FAISS vector database
+- `output/metadata.json` - Chunk metadata and statistics
+
+### **Optionally generated:**
+
+- `output/chunks_export.json` - Exported chunks with text (from scripts)
+- `output/all_chunks_with_text.json` - Complete chunk backup
+
+---
+
+## 🎯 **Common Workflows**
+
+### **1. First Time Setup**
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Set OpenAI API key
+export OPENAI_API_KEY="your-key-here"
+
+# Build vector database
+python src/main.py
+
+# Test retrieval
+python examples/demo_retrieval.py
+```
+
+### **2. Adding New Documents**
+
+```bash
+# Add documents to data/ folder
+cp new_document.txt data/
+
+# Rebuild database
+python src/main.py
+
+# Test with new content
+python examples/demo_retrieval.py
+```
+
+### **3. Exploring Chunk Content**
+
+```bash
+# Quick view of chunk 0
+python scripts/view_chunk.py 0
+
+# Search for medical terms
+python scripts/read_chunks.py
+# Then select: 2 (Search by keyword)
+
+# See what retrieval returns
+python scripts/search_with_text.py
+```
+
+### **4. Development/Debugging**
+
+```bash
+# View all code examples
+python examples/read_chunks_examples.py
+
+# Export chunks for analysis
+python scripts/read_chunks.py
+# Then select: 5 (Export to JSON)
+
+# Test retrieval accuracy
+python examples/test_retrieval.py
+```
+
+---
+
+## 🔍 **File Path References**
+
+### **Key Changes Made:**
+
+- **Scripts** now use `../src/` for imports
+- **Data files** accessed via `../data/` from scripts
+- **Output files** saved to `output/` directory
+- **Vector database** now at `output/vector_db_index.index`
+- **Metadata** now at `output/metadata.json`
+
+### **Import Path Examples:**
+
+```python
+# From scripts/ or examples/
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+# From src/
+# No changes needed - relative imports work normally
+```
+
+### **File Path Examples:**
+
+```python
+# Loading documents (from scripts/examples)
+docs = load_documents("../data/")
+
+# Checking database exists (from scripts/examples)
+if os.path.exists("../output/vector_db_index.index"):
+
+# From src/ (main.py)
+os.makedirs("output", exist_ok=True)
+save_to_faiss(vectors, ids, "output/vector_db_index.index")
+```
+
+---
+
+## ⚡ **Performance Notes**
+
+### **About `__pycache__` Directories**
+
+- **What they are**: Python bytecode cache files
+- **Purpose**: Speed up module loading (automatic optimization)
+- **Are they needed?**: No, Python recreates them automatically
+- **Should you delete them?**: Safe to delete anytime
+- **Are they in git?**: No, already in `.gitignore`
+
+### **Clean up `__pycache__`:**
+
+```bash
+# Remove all __pycache__ directories (optional)
+find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
+# They'll be recreated automatically when you run Python scripts
+```
+
+### **Other Generated Files:**
+
+```bash
+# Clean output directory (will be recreated by main.py)
+rm -rf output/*
+
+# Clean any exported files
+rm -f *.json chunks_export.json all_chunks_with_text.json
+```
+
+---
+
+## 🚨 **Important Notes**
+
+### **Breaking Changes:**
+
+1. **Vector database location** changed from `./ ` to `output/`
+2. **Script import paths** updated for new directory structure
+3. **Metadata location** moved to `output/metadata.json`
+
+### **Migration Steps:**
+
+If you have old vector databases:
+
+```bash
+# Move old files to new location
+mkdir -p output
+mv vector_db_index.index output/ 2>/dev/null || true
+mv metadata.json output/ 2>/dev/null || true
+```
+
+### **Compatibility:**
+
+- All existing functionality preserved
+- Scripts work from any directory location
+- Examples and documentation updated to match new structure
+
+---
+
+## 📋 **Troubleshooting**
+
+### **Common Issues:**
+
+#### **"Module not found" errors:**
+
+```bash
+# Ensure you're in the project root directory
+pwd  # Should end in /ai-kb-loader
+
+# Check Python path
+python -c "import sys; print(sys.path)"
+```
+
+#### **"Vector database not found" errors:**
+
+```bash
+# Check if database exists
+ls -la output/
+
+# Rebuild if missing
+python src/main.py
+```
+
+#### **Import errors in scripts:**
+
+```bash
+# Make sure you're running from project root
+cd /path/to/ai-kb-loader
+python scripts/view_chunk.py 0
+```
+
+#### **Permission errors:**
+
+```bash
+# Make scripts executable (if needed)
+chmod +x scripts/*.py examples/*.py
+```
+
+---
+
+## 🎉 **Benefits of New Organization**
+
+### **✅ Improved:**
+
+- **Cleaner root directory** - only essential files visible
+- **Logical grouping** - documentation, scripts, examples separated
+- **Better navigation** - easier to find what you need
+- **Git cleaner** - generated files in output/, ignored properly
+- **Scalability** - easier to add new scripts/docs/examples
+
+### **✅ Professional Structure:**
+
+- Follows Python project best practices
+- Clear separation of concerns
+- Easy onboarding for new developers
+- Documentation is prominent and organized
+
+### **✅ Maintenance:**
+
+- Generated files isolated in `output/`
+- Scripts have consistent import patterns
+- Documentation stays up to date
+- Easy to clean/rebuild generated content
+
+---
+
+**Last Updated:** October 26, 2025  
+**Reorganization:** Complete workspace restructuring for better organization and maintainability.
+
+---
+
+## 📞 **Quick Reference Commands**
+
+```bash
+# Build database
+python src/main.py
+
+# Interactive search
+python examples/demo_retrieval.py
+
+# View chunk 0
+python scripts/view_chunk.py 0
+
+# Advanced chunk tools
+python scripts/read_chunks.py
+
+# Search with text display
+python scripts/search_with_text.py
+
+# Code examples
+python examples/read_chunks_examples.py
+
+# Clean generated files
+rm -rf output/* __pycache__
+```

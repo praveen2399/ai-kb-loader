@@ -3,6 +3,16 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Generated output files
+output/
+*.index
+metadata.json
+chunks_export.json
+all_chunks_with_text.json
+
+# System files
+.DS_Store
+
 # C extensions
 *.so
 

@@ -88,11 +88,14 @@ def main():
     print("\nStep 4/4: Saving FAISS index and metadata...")
     step_start = time.time()
     
+    # Ensure output directory exists
+    os.makedirs("output", exist_ok=True)
+    
     # Save FAISS index
-    save_to_faiss(vectors, ids, "vector_db_index.index")
+    save_to_faiss(vectors, ids, "output/vector_db_index.index")
     
     # Save metadata to JSON file
-    metadata_file = "metadata.json"
+    metadata_file = "output/metadata.json"
     with open(metadata_file, 'w', encoding='utf-8') as f:
         json.dump({
             'metadata': metadata,

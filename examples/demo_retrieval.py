@@ -9,7 +9,7 @@ import sys
 from dotenv import load_dotenv
 
 # Add src to path so we can import our modules
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from retriever.vector_retriever import VectorRetriever, quick_search
 
@@ -20,10 +20,11 @@ def main():
     print("=== AI Knowledge Base Retriever Demo ===\n")
     
     # Check if vector database exists
-    if not os.path.exists("vector_db_index.index") or not os.path.exists("metadata.json"):
+    if not os.path.exists("output/vector_db_index.index") or not os.path.exists("output/metadata.json"):
         print("❌ Vector database not found!")
         print("📋 Please run 'python src/main.py' first to create the vector database.")
         print("🗂️  Make sure you have documents in the data/ folder.")
+        print("🔍 Expected files: output/vector_db_index.index and output/metadata.json")
         return
     
     # Initialize retriever
