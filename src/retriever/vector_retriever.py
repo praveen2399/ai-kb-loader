@@ -1,11 +1,11 @@
 import os
 import json
-import faiss
 import numpy as np
 from typing import List, Dict, Tuple, Optional
 from embeddings.embedder import embed_documents
+from vectorstore.chroma_indexer import ChromaIndexer, load_from_chroma, search_chroma_collection
 from .utils import (
-    safe_load_database, validate_search_params, format_error_message,
+    validate_search_params, format_error_message,
     DatabaseNotFoundError, DatabaseCorruptedError, QueryEmbeddingError
 )
 import logging
@@ -17,35 +17,54 @@ logger = logging.getLogger(__name__)
 
 class VectorRetriever:
     """
-    A class for retrieving similar documents from a FAISS vector database.
+    A class for retrieving similar documents from a ChromaDB vector database.
     """
     
-    def __init__(self, index_path: str = "output/vector_db_index.index", metadata_path: str = "output/metadata.json"):
+    def __init__(self, persist_directory: str = "output/chroma_db", collection_name: str = "documents"):
         """
         Initialize the vector retriever.
         
         Args:
-            index_path: Path to the FAISS index file
-            metadata_path: Path to the metadata JSON file
+            persist_directory: Path to the ChromaDB persistence directory
+            collection_name: Name of the ChromaDB collection
         """
-        self.index_path = index_path
-        self.metadata_path = metadata_path
-        self.index = None
+        self.persist_directory = persist_directory
+        self.collection_name = collection_name
+        self.indexer = None
         self.metadata = None
         self.loaded = False
     
     def load(self) -> bool:
         """
-        Load the FAISS index and metadata with comprehensive error handling.
+        Load the ChromaDB collection and metadata with comprehensive error handling.
         
         Returns:
             bool: True if loading was successful, False otherwise
         """
         try:
-            # Use safe loading with validation
-            self.index, self.metadata = safe_load_database(self.index_path, self.metadata_path)
+            # Check if ChromaDB directory exists
+            if not os.path.exists(self.persist_directory):
+                raise DatabaseNotFoundError(f"ChromaDB directory not found: {self.persist_directory}")
+            
+            # Load ChromaDB collection
+            self.indexer = load_from_chroma(self.persist_directory, self.collection_name)
+            
+            # Load metadata if available
+            metadata_path = os.path.join(self.persist_directory, "metadata.json")
+            if os.path.exists(metadata_path):
+                with open(metadata_path, 'r') as f:
+                    self.metadata = json.load(f)
+            else:
+                logger.warning(f"Metadata file not found: {metadata_path}")
+                self.metadata = {}
+            
+            # Get collection stats
+            stats = self.indexer.get_collection_stats()
+            if stats.get("total_documents", 0) == 0:
+                raise DatabaseCorruptedError("ChromaDB collection is empty")
+            
             self.loaded = True
-            logger.info(f"Successfully loaded index with {self.index.ntotal} vectors and {len(self.metadata)} metadata entries")
+            logger.info(f"Successfully loaded ChromaDB collection with {stats.get('total_documents', 0)} documents")
             return True
             
         except (DatabaseNotFoundError, DatabaseCorruptedError) as e:
@@ -103,60 +122,34 @@ class VectorRetriever:
             # Embed the query
             query_vector = self._embed_query(query)
             
-            # Perform similarity search
-            # Reshape query vector for FAISS
-            query_vector = query_vector.reshape(1, -1).astype('float32')
+            # Search ChromaDB collection
+            distances, documents, metadatas = search_chroma_collection(
+                self.indexer, query_vector, k=top_k
+            )
             
-            # Search for similar vectors
-            search_k = min(top_k, self.index.ntotal)
-            distances, indices = self.index.search(query_vector, search_k)
-            
-            # Prepare results
+            # Format results
             results = []
-            for i, (distance, idx) in enumerate(zip(distances[0], indices[0])):
-                if idx >= 0 and idx < len(self.metadata):  # Check for valid index
-                    result = {
-                        'rank': i + 1,
-                        'distance': float(distance),
-                        'similarity_score': 1 / (1 + distance),  # Convert distance to similarity
-                        'metadata': self.metadata[idx].copy(),
-                        'chunk_text': self._get_chunk_text(idx) if hasattr(self, '_get_chunk_text') else None
-                    }
-                    results.append(result)
-                else:
-                    logger.warning(f"Invalid index {idx} (metadata length: {len(self.metadata)})")
+            for i, (distance, document, metadata) in enumerate(zip(distances, documents, metadatas)):
+                # ChromaDB returns distance (lower is better), convert to similarity score
+                similarity_score = 1 / (1 + distance) if distance > 0 else 1.0
+                
+                result = {
+                    'rank': i + 1,
+                    'content': document,
+                    'similarity_score': round(similarity_score, 4),
+                    'distance': round(distance, 4),
+                    'metadata': metadata or {}
+                }
+                results.append(result)
             
+            logger.info(f"Retrieved {len(results)} results for query: '{query[:50]}...'")
             return results
             
         except QueryEmbeddingError:
-            raise  # Re-raise query embedding errors
+            raise
         except Exception as e:
             logger.error(f"Error during search: {e}")
             raise RuntimeError(f"Search failed: {e}")
-    
-    def search_by_source(self, query: str, source_filter: str, top_k: int = 5) -> List[Dict]:
-        """
-        Search for similar documents filtered by source file.
-        
-        Args:
-            query: The search query string
-            source_filter: Filter results to only include this source file
-            top_k: Number of top similar results to return
-            
-        Returns:
-            List of dictionaries containing filtered search results
-        """
-        # Get all results first
-        all_results = self.search(query, top_k * 3)  # Get more results to filter
-        
-        # Filter by source
-        filtered_results = [
-            result for result in all_results 
-            if result['metadata'].get('source', '').lower().find(source_filter.lower()) != -1
-        ]
-        
-        # Return top_k filtered results
-        return filtered_results[:top_k]
     
     def get_stats(self) -> Dict:
         """
@@ -166,76 +159,127 @@ class VectorRetriever:
             Dictionary containing database statistics
         """
         if not self.loaded:
-            return {"error": "Vector retriever not loaded"}
+            return {"error": "Database not loaded"}
         
-        # Count documents by source
-        source_counts = {}
-        for meta in self.metadata:
-            source = meta.get('source', 'unknown')
-            source_counts[source] = source_counts.get(source, 0) + 1
-        
-        return {
-            'total_vectors': self.index.ntotal,
-            'total_chunks': len(self.metadata),
-            'vector_dimension': self.index.d,
-            'sources': source_counts,
-            'index_path': self.index_path,
-            'metadata_path': self.metadata_path
-        }
+        try:
+            stats = self.indexer.get_collection_stats()
+            
+            # Enhance with metadata if available
+            result = {
+                'total_vectors': stats.get('total_documents', 0),
+                'vector_dimension': stats.get('embedding_dimension', 0),
+                'collection_name': stats.get('collection_name', self.collection_name),
+                'total_chunks': stats.get('total_documents', 0),
+                'sources': {}
+            }
+            
+            # Add source information from metadata if available
+            if self.metadata and 'metadatas' in self.metadata:
+                source_counts = {}
+                for meta in self.metadata['metadatas']:
+                    source = meta.get('source', 'unknown')
+                    source_counts[source] = source_counts.get(source, 0) + 1
+                result['sources'] = source_counts
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error getting stats: {e}")
+            return {"error": str(e)}
     
-    def format_results(self, results: List[Dict], include_text: bool = True) -> str:
+    def get_chunk_by_index(self, index: int) -> Optional[Dict]:
         """
-        Format search results for display.
+        Retrieve a specific chunk by its index.
         
         Args:
-            results: List of search results from search() method
-            include_text: Whether to include chunk text in the output
+            index: Index of the chunk to retrieve
             
         Returns:
-            Formatted string representation of the results
+            Dictionary containing chunk information or None if not found
         """
-        if not results:
-            return "No results found."
+        if not self.loaded:
+            logger.error("Database not loaded")
+            return None
         
-        formatted = f"Found {len(results)} results:\n\n"
-        
-        for result in results:
-            meta = result['metadata']
-            formatted += f"📄 Rank {result['rank']} (Similarity: {result['similarity_score']:.3f})\n"
-            formatted += f"   📁 Source: {meta.get('source', 'Unknown')}\n"
-            formatted += f"   🔢 Chunk: {meta.get('chunk_index', 'N/A')}\n"
-            formatted += f"   📏 Length: {meta.get('text_length', 'N/A')} chars\n"
+        try:
+            # Get chunk by ID (assuming IDs are chunk_0, chunk_1, etc.)
+            chunk_id = f"chunk_{index}"
             
-            if include_text and 'chunk_text' in result and result['chunk_text']:
-                # Truncate long text for display
-                text = result['chunk_text']
-                if len(text) > 200:
-                    text = text[:200] + "..."
-                formatted += f"   📝 Text: {text}\n"
+            # ChromaDB doesn't have direct index access, so we'll use get method
+            results = self.indexer.collection.get(
+                ids=[chunk_id],
+                include=["documents", "metadatas"]
+            )
             
-            formatted += "\n"
-        
-        return formatted
+            if results and len(results.get("documents", [])) > 0:
+                return {
+                    'id': chunk_id,
+                    'content': results["documents"][0],
+                    'metadata': results.get("metadatas", [{}])[0] or {}
+                }
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error retrieving chunk {index}: {e}")
+            return None
 
 
-# Convenience function for quick retrieval
-def quick_search(query: str, top_k: int = 5, 
-                index_path: str = "vector_db_index.index", 
-                metadata_path: str = "metadata.json") -> List[Dict]:
+def quick_search(query: str, top_k: int = 3, persist_directory: str = "output/chroma_db") -> List[Dict]:
     """
-    Perform a quick search without creating a persistent retriever instance.
+    Quick search function for immediate results without creating a retriever instance.
     
     Args:
-        query: The search query string
+        query: Search query string
         top_k: Number of results to return
-        index_path: Path to FAISS index
-        metadata_path: Path to metadata file
+        persist_directory: Path to ChromaDB persistence directory
         
     Returns:
         List of search results
     """
-    retriever = VectorRetriever(index_path, metadata_path)
-    if retriever.load():
+    try:
+        retriever = VectorRetriever(persist_directory)
+        
+        if not retriever.load():
+            logger.error("Failed to load vector database for quick search")
+            return []
+        
         return retriever.search(query, top_k)
-    else:
+        
+    except Exception as e:
+        logger.error(f"Quick search failed: {e}")
         return []
+
+
+def batch_search(queries: List[str], top_k: int = 5, persist_directory: str = "output/chroma_db") -> Dict[str, List[Dict]]:
+    """
+    Perform batch search for multiple queries efficiently.
+    
+    Args:
+        queries: List of query strings
+        top_k: Number of results per query
+        persist_directory: Path to ChromaDB persistence directory
+        
+    Returns:
+        Dictionary mapping queries to their results
+    """
+    try:
+        retriever = VectorRetriever(persist_directory)
+        
+        if not retriever.load():
+            logger.error("Failed to load vector database for batch search")
+            return {}
+        
+        results = {}
+        for query in queries:
+            try:
+                results[query] = retriever.search(query, top_k)
+            except Exception as e:
+                logger.error(f"Error searching for query '{query}': {e}")
+                results[query] = []
+        
+        return results
+        
+    except Exception as e:
+        logger.error(f"Batch search failed: {e}")
+        return {}

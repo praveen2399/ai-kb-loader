@@ -20,11 +20,11 @@ def main():
     print("=== AI Knowledge Base Retriever Demo ===\n")
     
     # Check if vector database exists
-    if not os.path.exists("output/vector_db_index.index") or not os.path.exists("output/metadata.json"):
-        print("❌ Vector database not found!")
+    if not os.path.exists("output/chroma_db") or not os.path.exists("output/chroma_db/metadata.json"):
+        print("❌ ChromaDB vector database not found!")
         print("📋 Please run 'python src/main.py' first to create the vector database.")
         print("🗂️  Make sure you have documents in the data/ folder.")
-        print("🔍 Expected files: output/vector_db_index.index and output/metadata.json")
+        print("🔍 Expected directory: output/chroma_db/")
         return
     
     # Initialize retriever
@@ -75,11 +75,33 @@ def main():
                 
                 for i, result in enumerate(results, 1):
                     meta = result['metadata']
+                    content = result.get('content', 'No content available')
+                    
                     print(f"📄 Result {i} (Similarity: {result['similarity_score']:.3f})")
                     print(f"   📁 Source: {meta.get('source', 'Unknown')}")
                     print(f"   🔢 Chunk: {meta.get('chunk_index', 'N/A')}")
                     print(f"   📏 Length: {meta.get('text_length', 'N/A')} characters")
                     print(f"   📊 Distance: {result['distance']:.4f}")
+                    print(f"   📝 Content:")
+                    
+                    # Format content with nice indentation and word wrapping
+                    content_lines = content.strip().split('\n')
+                    for line in content_lines:
+                        if line.strip():  # Only print non-empty lines
+                            # Wrap long lines at 80 characters
+                            if len(line) > 80:
+                                words = line.split()
+                                current_line = ""
+                                for word in words:
+                                    if len(current_line) + len(word) + 1 <= 80:
+                                        current_line += word + " "
+                                    else:
+                                        print(f"      {current_line.strip()}")
+                                        current_line = word + " "
+                                if current_line.strip():
+                                    print(f"      {current_line.strip()}")
+                            else:
+                                print(f"      {line.strip()}")
                     print()
             
             print("-" * 50)

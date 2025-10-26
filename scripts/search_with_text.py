@@ -88,8 +88,8 @@ def main():
     print("=== Search with Full Chunk Text Display ===\n")
     
     # Check if vector database exists
-    if not os.path.exists("../output/vector_db_index.index") or not os.path.exists("../output/metadata.json"):
-        print("❌ Vector database not found!")
+    if not os.path.exists("../output/chroma_db") or not os.path.exists("../output/chroma_db/metadata.json"):
+        print("❌ ChromaDB vector database not found!")
         print("📋 Please run 'python src/main.py' first.")
         return
     

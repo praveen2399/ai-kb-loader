@@ -22,8 +22,9 @@ ai-kb-loader/
 │   └── read_chunks_examples.py       # Code examples for developers
 │
 ├── 📊 output/                        # Generated files
-│   ├── vector_db_index.index         # FAISS vector database
-│   ├── metadata.json                 # Chunk metadata
+│   ├── chroma_db/                    # ChromaDB vector database
+│   │   ├── metadata.json             # Chunk metadata
+│   │   └── [chroma files]            # ChromaDB persistence files
 │   └── [exported files]              # Any exported JSON files
 │
 ├── 🏗️ src/                           # Core application code
@@ -33,10 +34,10 @@ ai-kb-loader/
 │   ├── loader/
 │   │   └── document_loader.py        # Document loading and chunking
 │   ├── retriever/
-│   │   ├── vector_retriever.py       # FAISS-based retrieval
+│   │   ├── vector_retriever.py       # ChromaDB-based retrieval
 │   │   └── utils.py                  # Retrieval utilities
 │   └── vectorstore/
-│       └── faiss_indexer.py          # FAISS index management
+│       └── chroma_indexer.py         # ChromaDB index management
 │
 ├── 📄 data/                          # Input documents
 │   ├── sample_medical.txt            # Medical knowledge base

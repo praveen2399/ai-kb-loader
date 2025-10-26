@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from loader.document_loader import load_documents
 import sys
 from embeddings.embedder import embed_documents
-from vectorstore.faiss_indexer import save_to_faiss
+from vectorstore.chroma_indexer import save_to_chroma
 
 # Load environment variables from .env file
 load_dotenv()
@@ -85,32 +85,21 @@ def main():
     vectors, ids = embed_documents(chunks)
     print(f"✓ Generated embeddings ({time.time() - step_start:.2f}s)")
 
-    print("\nStep 4/4: Saving FAISS index and metadata...")
+    print("\nStep 4/4: Saving ChromaDB index and metadata...")
     step_start = time.time()
     
     # Ensure output directory exists
     os.makedirs("output", exist_ok=True)
     
-    # Save FAISS index
-    save_to_faiss(vectors, ids, "output/vector_db_index.index")
+    # Save to ChromaDB
+    save_to_chroma(vectors, chunks, metadata, persist_directory="output/chroma_db")
     
-    # Save metadata to JSON file
-    metadata_file = "output/metadata.json"
-    with open(metadata_file, 'w', encoding='utf-8') as f:
-        json.dump({
-            'metadata': metadata,
-            'total_chunks': len(chunks),
-            'total_documents': len(docs),
-            'created_at': time.time(),
-            'test_mode': test_mode
-        }, f, indent=2, ensure_ascii=False)
-    
-    print(f"✓ FAISS index and metadata saved ({time.time() - step_start:.2f}s)")
-    print(f"📄 Metadata saved to: {os.path.abspath(metadata_file)}")
+    print(f"✓ ChromaDB index and metadata saved ({time.time() - step_start:.2f}s)")
+    print(f"📄 Database saved to: {os.path.abspath('output/chroma_db')}")
     
     total_time = time.time() - start_time
     print(f"\n🎉 Process completed successfully in {total_time:.2f}s")
-    print(f"📊 Processed {len(docs)} documents → {len(chunks)} chunks → Vector database ready!")
+    print(f"📊 Processed {len(docs)} documents → {len(chunks)} chunks → ChromaDB ready!")
 
 if __name__ == "__main__":
     main()
