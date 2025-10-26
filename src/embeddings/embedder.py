@@ -52,3 +52,43 @@ def embed_documents(chunks, batch_size=100):
                     vectors.append([0.0] * 1536)  # text-embedding-3-small dimension
 
     return np.array(vectors), ids
+
+
+def embed_single_text(text: str) -> np.ndarray:
+    """
+    Embed a single text string. Useful for query embedding.
+    
+    Args:
+        text: The text to embed
+        
+    Returns:
+        numpy array of the embedding vector
+    """
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY not set.")
+    
+    try:
+        response = client.embeddings.create(
+            model="text-embedding-3-small", 
+            input=text
+        )
+        return np.array(response.data[0].embedding)
+        
+    except Exception as e:
+        print(f"Error embedding text: {e}")
+        # Return zero vector as fallback
+        return np.array([0.0] * 1536)
+
+
+def embed_query(query: str) -> np.ndarray:
+    """
+    Alias for embed_single_text for query embedding.
+    
+    Args:
+        query: The query string to embed
+        
+    Returns:
+        numpy array of the query embedding
+    """
+    return embed_single_text(query)
